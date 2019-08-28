@@ -1,0 +1,707 @@
+openapi: 3.0.1
+
+info:
+  description: "API calls description for E2->E3 test App"
+  version: "1.0.0"
+  title: "e E2->E3 Test App"
+  # Note: Additionlly application supports all default Flask server responses
+
+servers:
+- url: "http://127.0.0.1:5000/api/v1"
+  description: "Flask server"
+
+tags:
+- name: "init"
+  description: "Test message"
+- name: "login"
+  description: "Login into server"
+- name: "test-case"
+  description: "test-case operations"
+- name: "test-suite"
+  description: "test-suite operations"
+  
+
+paths:
+  /:
+    get:
+      tags: 
+      - "init"
+      summary: "init"
+      description: "Get init message"
+      operationId: "getInit"
+      responses:
+        200:
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Simple Test Management System API"
+          
+  /login:
+    post:
+      tags: 
+      - "login"
+      summary: "User login"
+      description: "Login to the server and recieve access token"
+      operationId: "login"
+      requestBody:
+        description: "User credentials"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/creds"
+      responses:
+        200:
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/access_token"
+        400:
+          description: "Missing request body or required parameter"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/bad_body"
+        401:
+          description: "Authorization fail"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "No such username or password"
+        415:
+          description: "Incorrect content type"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Content-type must be application/json"
+
+
+  /test_cases:
+    get:
+      tags: 
+      - "test-case"
+      summary: "Get all test-cases data"
+      description: "Get data for all test-cases from Redis"
+      operationId: "getTestCases"
+      security:
+      - bearerAuth: []
+      responses:
+        200:
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  test-cases:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/test_case"
+    post:
+      tags: 
+      - "test-case"
+      summary: "Add new test-case"
+      description: "Post test-case data into Redis"
+      operationId: "postTestCases"
+      security:
+      - bearerAuth: []
+      requestBody:
+        description: "Test case data"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/post_test_case"
+      responses:
+        200:
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test case successfully added"
+        400:
+          description: "Missing request body or required parameter"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/bad_body"
+        404:
+          description: "Test suite not found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test suite does not exist"
+        409:
+          description: "Test case already exist"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test case already exist"
+        415:
+          description: "Incorrect content type"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Content-type must be application/json"
+    delete:
+      tags: 
+      - "test-case"
+      summary: "Delete all test-cases"
+      description: "Delete all test-cases"
+      operationId: "deleteAllTestCases"
+      security:
+      - bearerAuth: []
+      responses:
+        200:
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "All test cases successfully deleted"
+    
+  /test_cases/{test_case_id}:
+    get:
+      tags: 
+      - "test-case"
+      summary: "Get test-case data"
+      description: "Get data for chosen test-case"
+      operationId: "getTestCase"
+      security:
+      - bearerAuth: []
+      parameters:
+        - name: test_case_id
+          in: path
+          description: "Test case id"
+          required: true
+          schema:
+            type: "integer"
+          example: "1"
+      responses:
+        200:
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  test-case:
+                    $ref: "#/components/schemas/test_case"
+        404:
+          description: "Test case not found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test case doesn't exist"
+    put:
+      tags: 
+      - "test-case"
+      summary: "Update test-cases data"
+      description: "Update data for chosen test-case"
+      operationId: "putTestCase"
+      security:
+      - bearerAuth: []
+      parameters:
+        - name: test_case_id
+          in: path
+          description: "Test case id"
+          required: true
+          schema:
+            type: "integer"
+          example: "1"
+      requestBody:
+        description: "Test case data"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/post_test_case"
+      responses:
+        200:
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test case successfully updated"
+        400:
+          description: "Missing request body or required parameter"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/bad_body"
+        404:
+          description: "Test case not found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test case does not exist"
+        415:
+          description: "Incorrect content type"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Content-type must be application/json"
+    delete:
+      tags: 
+      - "test-case"
+      summary: "Delete test-case data"
+      description: "Delete test-case"
+      operationId: "deleteTestCase"
+      security:
+      - bearerAuth: []
+      parameters:
+        - name: test_case_id
+          in: path
+          description: "Test case id"
+          required: true
+          schema:
+            type: "integer"
+          example: "1"
+      responses:
+        200:
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test case successfully deleted"
+        404:
+          description: "Test case not found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test case doesn't exist"
+
+
+  /test_suites:
+      get:
+        tags: 
+        - "test-suite"
+        summary: "Get all test-suites data"
+        description: "Get data for all test-suites"
+        operationId: "getTestSuites"
+        security:
+        - bearerAuth: []
+        responses:
+          200:
+            description: "Success"
+            content:
+              application/json:
+                schema:
+                  type: "object"
+                  properties:
+                    test-suites:
+                      type: "array"
+                      items:
+                        $ref: "#/components/schemas/test_suite"
+      post:
+        tags: 
+        - "test-suite"
+        summary: "Add new test-suite"
+        description: "Post test-suite data"
+        operationId: "postTestSuites"
+        security:
+        - bearerAuth: []
+        requestBody:
+          description: "Test suite data"
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/post_test_suite"
+        responses:
+          200:
+            description: "Success"
+            content:
+              application/json:
+                schema:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Suite successfully added"
+          400:
+            description: "Missing request body or required parameter"
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/bad_body"
+          409:
+            description: "Test suite already exist"
+            content:
+              application/json:
+                schema:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Test suite already exist"
+          415:
+            description: "Incorrect content type"
+            content:
+              application/json:
+                schema:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Content-type must be application/json"
+      delete:
+        tags: 
+        - "test-suite"
+        summary: "Delete all test-suites"
+        description: "Delete all test-suites"
+        operationId: "deleteAllTestSuites"
+        security:
+        - bearerAuth: []
+        # Semantic error: "DELETE operations cannot have a requestBody". Has no effect on API doc.
+        # Known openAPI bug: https://github.com/OAI/OpenAPI-Specification/issues/1801
+        requestBody:
+          description: "Force delete"
+          required: false
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  force:
+                    type: "boolean"
+                    example: false
+        responses:
+          200:
+            description: "Success"
+            content:
+              application/json:
+                schema:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      # Only 1 of this 2 messages will be received
+                      example: "'All test cases and suites successfully deleted' or 'Empty test suites successfully deleted'"
+          415:
+            description: "Incorrect content type (if request body exist)"
+            content:
+              application/json:
+                schema:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Content-type must be application/json"
+    
+  /test-suites/{test_suite_id}:
+    get:
+      tags: 
+      - "test-suite"
+      summary: "Get all test-suites data"
+      description: "Get data for chosen test-suite"
+      operationId: "getTestSuite"
+      security:
+      - bearerAuth: []
+      parameters:
+        - name: test_suite_id
+          in: path
+          description: "Test suite id"
+          required: true
+          schema:
+            type: "integer"
+          example: "1"
+      responses:
+        200:
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  test-suite:
+                    $ref: "#/components/schemas/test_suite"
+        404:
+          description: "Test suite not found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test suite does not exist"
+    put:
+      tags: 
+      - "test-suite"
+      summary: "Update test-suite data"
+      description: "Update data of chosen test-suite"
+      operationId: "putTestSuite"
+      security:
+      - bearerAuth: []
+      parameters:
+        - name: test_suite_id
+          in: path
+          description: "Test suite id"
+          required: true
+          schema:
+            type: "integer"
+          example: "1"
+      requestBody:
+        description: "Test suite data"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/post_test_suite"
+      responses:
+        200:
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test suite successfully updated"
+        400:
+          description: "Missing request body or required parameter"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/bad_body"
+        404:
+          description: "Test suite not found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test suite does not exist"
+        415:
+            description: "Incorrect content type"
+            content:
+              application/json:
+                schema:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Content-type must be application/json"
+    delete:
+      tags: 
+      - "test-suite"
+      summary: "Delete test-suite data"
+      description: "Delete test-suite"
+      operationId: "deleteTestSuite"
+      security:
+      - bearerAuth: []
+      parameters:
+        - name: test_suite_id
+          in: path
+          description: "Test suite id"
+          required: true
+          schema:
+            type: "integer"
+          example: "1"
+      # Semantic error. Has no effect on API doc.
+      # Known openAPI bug: https://github.com/OAI/OpenAPI-Specification/issues/1801
+      requestBody:
+        description: "Force delete"
+        required: false
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                force:
+                  type: "boolean"
+                  example: True
+      responses:
+        200:
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test suite successfully deleted"
+        404:
+          description: "Test suite doesn't exist"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Test suite doesn't exist"
+        409:
+          description: "Failed to delete suite which contains test cases without 'force:True' option"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                    example: "Unable to delete test suite with linked test cases\nPlease, use 'Force':True option to delete suite and all test cases in it"
+        415:
+            description: "Incorrect content type (if request body exist)"
+            content:
+              application/json:
+                schema:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Content-type must be application/json"
+  
+
+######################### Components #########################
+
+components:
+  schemas:
+    creds:
+      type: "object"
+      properties:
+        username:
+          type: "string"
+          example: "test"
+        password:
+          type: "string"
+          example: "test"
+    test_case:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          example: "unique test case identifier"
+        suiteID:
+          type: "string"
+          example: "connection to suite"
+        title:
+          type: "string"
+          example: "test case name"
+        description:
+          type: "string"
+          example: "short info about test case"
+    
+    post_test_case:
+      type: "object"
+      properties:
+        suiteID:
+          type: "string"
+          example: "connection to suite"
+        title:
+          type: "string"
+          example: "test case title"
+        description:
+          type: "string"
+          example: "short info about test case"
+          
+    test_suite:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          example: "unique test suite identifier"
+        title:
+          type: "string"
+          example: "test suite title"
+        length:
+          type: "integer"
+          example: 1
+        cases:
+          type: "array"
+          items:
+            type: "string"
+            example: "test_case_id"
+    
+    post_test_suite:
+      type: "object"
+      properties:
+        title:
+          type: "string"
+          example: "test suite title"
+    
+    
+    access_token:
+      type: "object"
+      properties:
+        access_token:
+          type: "string"
+          example: "access_token_value"
+          
+    
+    bad_body:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+          example: "Bad request body"
+  
+    
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      description: "Bearer Auth token is required for operations with Redis. Use login request to acquire it."
+      type: "http"
+      scheme: "bearer"
+      bearerFormat: "JWT"    # optional, arbitrary value for documentation purposes

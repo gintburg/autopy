@@ -1,0 +1,21 @@
+host: 0.0.0.0
+port: 5000
+
+jwt_secrete_key: super-secret
+
+valid_user:
+  name: test
+  password: test
+
+hash_names:
+  test_case: test_case_hash
+  test_suite: test_suite_hash
+
+requests:
+  body:
+    test_case:
+      - suite_id
+      - title
+      - description
+    test_suite:
+      - title

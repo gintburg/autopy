@@ -1,0 +1,96 @@
+E2->E3 test application
+
+Project provides functionality to handle API calls, store and manage test cases and test suites data
+in the Database (DB).
+
+Description:
+
+    Main components of application are Flask server and Redis data structure store. Flask server handles REST
+    requests and Redis is used as DB.
+    There are 2 types of data that can be handled: test_cases and test_suites. Data is placed into it's 
+    unique hash according to the type (test case hash or test suite hash). And has next format:
+    Test case:
+        "id": "{suite_id:<str>,title:<str>,description:<str>}"
+    Test suite:
+        'id': "{title:<str>,length:<int>,cases:<list>}"        
+        
+    Where,  id - is an index by which data stored in Redis hash (autocalculated on server side)
+            suite_id - test case specific field that store id of related test suite
+            length - test suite specific field that represents amount of linked test case
+            cases - test suite specific field that contains list with IDs of linked test cases
+            The rest of the data is set by user via API calls.
+
+Requirements:
+    
+    Python
+        Version: 3.*
+        Packages:
+            - Pytest
+            - Flask
+            - Flask-JWT-Extended
+            - redis
+            - pyyaml
+        Note: requirements.txt could be found in a root dir of the project
+    
+    Redis
+        General info: Redis is an open source (BSD licensed), in-memory data 
+                    structure store, used as a database, cache and message broker
+        Links: 
+            Main site: https://redis.io/
+            Commands documentation: https://redis.io/commands
+        Installation:
+            Via apt (if supported by your os): https://www.fullstackpython.com/blog/install-redis-use-python-3-ubuntu-1604.html  
+            Manually: https://github.com/antirez/redis
+            
+Application usage:
+
+    Run locally:
+        1. cd {PROJECT_ROOT_DIR}
+        2. python -m rest
+        or python ./rest/__main__.py
+    
+        
+    Run in docker:
+    
+        1. Install docker (e.i. RHEL):
+            # yum install -y docker
+        2. Cd into the project directory
+        3. Build docker image:
+            # docker build --rm -t api-python3.6 .
+        4. Run the application in the container:
+            # docker run -d -it --rm --name api-python3.6 -p 5000:5000 -v "$PWD":/opt/app api-python3.6
+        5. Run test query:
+            # curl http://127.0.0.1:5000/api/v1/
+            {
+              "message": "Simple Test Management System API"
+            }
+    
+API calls:
+    
+    Default base url for REST: http://{host}:5000/api/v1
+    
+    Detailed information about API calls is placed in "e3_api.yaml" swagger or e3_api.pdf files. 
+    This files are placed in /docs/api folder of current project.
+    
+    Application supports all default Flask server and several custom (which are
+    discibed in API doc) responses. 
+    
+    How to open PDF file: Simply open it in preferable pdf viewer
+    
+    How to use SWAGGER:
+    
+        1. Open Swagger online Editor.
+        Link: https://editor.swagger.io/
+        
+        2. Open swagger YAML/JSON file if it exists:
+            - at the top menu press "file"->"import file", browse to the file and open it
+        
+        Note: If you want to create a new API doc, simply remove data in the left subwindow
+        
+        3. Format file according to OpenAPI Specification.
+        Swagger OpenAPI Specification: https://swagger.io/specification/#oasVersion
+        Contains information about:
+            - Document Structure
+            - Data Types
+            - Usage examples
+            - Etc.
